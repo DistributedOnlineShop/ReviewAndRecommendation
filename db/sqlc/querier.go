@@ -25,7 +25,7 @@ type Querier interface {
 	GetWishlistsByProductId(ctx context.Context, productID string) ([]Wishlist, error)
 	GetWishlistsByUserId(ctx context.Context, userID uuid.UUID) ([]Wishlist, error)
 	GetWishlistsList(ctx context.Context) ([]Wishlist, error)
-	UpdateExpiresAt(ctx context.Context, arg UpdateExpiresAtParams) (Coupon, error)
+	UpdateCouponExpiresAt(ctx context.Context, arg UpdateCouponExpiresAtParams) (Coupon, error)
 	UpdateReviewStatus(ctx context.Context, arg UpdateReviewStatusParams) (Review, error)
 }
 

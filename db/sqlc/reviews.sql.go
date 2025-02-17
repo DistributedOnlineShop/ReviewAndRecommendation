@@ -14,6 +14,7 @@ import (
 
 const createReviews = `-- name: CreateReviews :one
 INSERT INTO reviews (
+    review_id,
     USER_ID,
     PRODUCT_ID,
     RATING,
@@ -24,20 +25,23 @@ INSERT INTO reviews (
     $2,
     $3,
     $4,
-    $5
+    $5,
+    $6
 ) RETURNING review_id, user_id, product_id, rating, comment, status, created_at, updated_at
 `
 
 type CreateReviewsParams struct {
-	UserID    uuid.UUID   `json:"user_id"`
-	ProductID string      `json:"product_id"`
-	Rating    pgtype.Int4 `json:"rating"`
-	Comment   string      `json:"comment"`
-	Status    string      `json:"status"`
+	ReviewID  uuid.UUID      `json:"review_id"`
+	UserID    uuid.UUID      `json:"user_id"`
+	ProductID string         `json:"product_id"`
+	Rating    pgtype.Numeric `json:"rating"`
+	Comment   string         `json:"comment"`
+	Status    string         `json:"status"`
 }
 
 func (q *Queries) CreateReviews(ctx context.Context, arg CreateReviewsParams) (Review, error) {
 	row := q.db.QueryRow(ctx, createReviews,
+		arg.ReviewID,
 		arg.UserID,
 		arg.ProductID,
 		arg.Rating,
@@ -160,7 +164,8 @@ const updateReviewStatus = `-- name: UpdateReviewStatus :one
 UPDATE 
     reviews
 SET 
-    status = $2
+    status = $2,
+    updated_at = NOW()
 WHERE 
     review_id = $1 RETURNING review_id, user_id, product_id, rating, comment, status, created_at, updated_at
 `

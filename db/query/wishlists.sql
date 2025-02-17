@@ -1,10 +1,12 @@
 -- name: CreateWishlists :one
 INSERT INTO wishlists (
+    wl_id,
     user_id,
     product_id
 ) VALUES (
     $1,
-    $2
+    $2,
+    $3
 ) RETURNING *;
 
 -- name: GetWishlistsList :many

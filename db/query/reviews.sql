@@ -1,5 +1,6 @@
 -- name: CreateReviews :one
 INSERT INTO reviews (
+    review_id,
     USER_ID,
     PRODUCT_ID,
     RATING,
@@ -10,7 +11,8 @@ INSERT INTO reviews (
     $2,
     $3,
     $4,
-    $5
+    $5,
+    $6
 ) RETURNING *;
 
 -- name: GetReviewsList :many
@@ -39,7 +41,8 @@ WHERE
 UPDATE 
     reviews
 SET 
-    status = $2
+    status = $2,
+    updated_at = NOW()
 WHERE 
     review_id = $1 RETURNING *;
 

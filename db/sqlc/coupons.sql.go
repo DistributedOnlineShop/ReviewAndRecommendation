@@ -14,30 +14,38 @@ import (
 
 const createCoupons = `-- name: CreateCoupons :one
 INSERT INTO coupons (
+    coupon_id,
     code,
     discount,
     min_purchase,
+    start_at,
     expires_at
 ) VALUES (
     $1,
     $2,
     $3,
-    $4
-) RETURNING coupon_id, code, discount, min_purchase, expires_at, created_at, updated_at
+    $4,
+    $5,
+    $6
+) RETURNING coupon_id, code, discount, min_purchase, start_at, expires_at, created_at, updated_at
 `
 
 type CreateCouponsParams struct {
+	CouponID    uuid.UUID        `json:"coupon_id"`
 	Code        pgtype.Text      `json:"code"`
 	Discount    pgtype.Numeric   `json:"discount"`
 	MinPurchase pgtype.Numeric   `json:"min_purchase"`
-	ExpiresAt   pgtype.TIMESTAMP(0) `json:"expires_at"`
+	StartAt     pgtype.Timestamp `json:"start_at"`
+	ExpiresAt   pgtype.Timestamp `json:"expires_at"`
 }
 
 func (q *Queries) CreateCoupons(ctx context.Context, arg CreateCouponsParams) (Coupon, error) {
 	row := q.db.QueryRow(ctx, createCoupons,
+		arg.CouponID,
 		arg.Code,
 		arg.Discount,
 		arg.MinPurchase,
+		arg.StartAt,
 		arg.ExpiresAt,
 	)
 	var i Coupon
@@ -46,6 +54,7 @@ func (q *Queries) CreateCoupons(ctx context.Context, arg CreateCouponsParams) (C
 		&i.Code,
 		&i.Discount,
 		&i.MinPurchase,
+		&i.StartAt,
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -57,7 +66,7 @@ const deleteCoupon = `-- name: DeleteCoupon :exec
 DELETE FROM 
     coupons 
 WHERE 
-    coupon_id = $1 RETURNING coupon_id, code, discount, min_purchase, expires_at, created_at, updated_at
+    coupon_id = $1 RETURNING coupon_id, code, discount, min_purchase, start_at, expires_at, created_at, updated_at
 `
 
 func (q *Queries) DeleteCoupon(ctx context.Context, couponID uuid.UUID) error {
@@ -67,7 +76,7 @@ func (q *Queries) DeleteCoupon(ctx context.Context, couponID uuid.UUID) error {
 
 const getCouponByCouponId = `-- name: GetCouponByCouponId :one
 SELECT 
-    coupon_id, code, discount, min_purchase, expires_at, created_at, updated_at 
+    coupon_id, code, discount, min_purchase, start_at, expires_at, created_at, updated_at 
 FROM 
     coupons 
 WHERE 
@@ -82,6 +91,7 @@ func (q *Queries) GetCouponByCouponId(ctx context.Context, couponID uuid.UUID) (
 		&i.Code,
 		&i.Discount,
 		&i.MinPurchase,
+		&i.StartAt,
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -91,11 +101,11 @@ func (q *Queries) GetCouponByCouponId(ctx context.Context, couponID uuid.UUID) (
 
 const getValidCoupons = `-- name: GetValidCoupons :many
 SELECT 
-    coupon_id, code, discount, min_purchase, expires_at, created_at, updated_at
+    coupon_id, code, discount, min_purchase, start_at, expires_at, created_at, updated_at
 FROM 
     coupons
 WHERE 
-    expires_at >= NOW()
+    start_at < NOW() AND expires_at >= NOW()
 `
 
 func (q *Queries) GetValidCoupons(ctx context.Context) ([]Coupon, error) {
@@ -112,6 +122,7 @@ func (q *Queries) GetValidCoupons(ctx context.Context) ([]Coupon, error) {
 			&i.Code,
 			&i.Discount,
 			&i.MinPurchase,
+			&i.StartAt,
 			&i.ExpiresAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -126,28 +137,30 @@ func (q *Queries) GetValidCoupons(ctx context.Context) ([]Coupon, error) {
 	return items, nil
 }
 
-const updateExpiresAt = `-- name: UpdateExpiresAt :one
+const updateCouponExpiresAt = `-- name: UpdateCouponExpiresAt :one
 UPDATE 
     coupons 
 SET 
-    expires_at = $1
+    expires_at = $2,
+    updated_at = NOW()
 WHERE 
-    coupon_id = $2 RETURNING coupon_id, code, discount, min_purchase, expires_at, created_at, updated_at
+    coupon_id = $1 RETURNING coupon_id, code, discount, min_purchase, start_at, expires_at, created_at, updated_at
 `
 
-type UpdateExpiresAtParams struct {
-	ExpiresAt pgtype.TIMESTAMP(0) `json:"expires_at"`
+type UpdateCouponExpiresAtParams struct {
 	CouponID  uuid.UUID        `json:"coupon_id"`
+	ExpiresAt pgtype.Timestamp `json:"expires_at"`
 }
 
-func (q *Queries) UpdateExpiresAt(ctx context.Context, arg UpdateExpiresAtParams) (Coupon, error) {
-	row := q.db.QueryRow(ctx, updateExpiresAt, arg.ExpiresAt, arg.CouponID)
+func (q *Queries) UpdateCouponExpiresAt(ctx context.Context, arg UpdateCouponExpiresAtParams) (Coupon, error) {
+	row := q.db.QueryRow(ctx, updateCouponExpiresAt, arg.CouponID, arg.ExpiresAt)
 	var i Coupon
 	err := row.Scan(
 		&i.CouponID,
 		&i.Code,
 		&i.Discount,
 		&i.MinPurchase,
+		&i.StartAt,
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,

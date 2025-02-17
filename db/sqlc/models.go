@@ -14,26 +14,27 @@ type Coupon struct {
 	Code        pgtype.Text      `json:"code"`
 	Discount    pgtype.Numeric   `json:"discount"`
 	MinPurchase pgtype.Numeric   `json:"min_purchase"`
-	ExpiresAt   pgtype.TIMESTAMP(0) `json:"expires_at"`
-	CreatedAt   pgtype.TIMESTAMP(0) `json:"created_at"`
-	UpdatedAt   pgtype.TIMESTAMP(0) `json:"updated_at"`
+	StartAt     pgtype.Timestamp `json:"start_at"`
+	ExpiresAt   pgtype.Timestamp `json:"expires_at"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
 }
 
 type Review struct {
 	ReviewID  uuid.UUID        `json:"review_id"`
 	UserID    uuid.UUID        `json:"user_id"`
 	ProductID string           `json:"product_id"`
-	Rating    pgtype.Int4      `json:"rating"`
+	Rating    pgtype.Numeric   `json:"rating"`
 	Comment   string           `json:"comment"`
 	Status    string           `json:"status"`
-	CreatedAt pgtype.TIMESTAMP(0) `json:"created_at"`
-	UpdatedAt pgtype.TIMESTAMP(0) `json:"updated_at"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }
 
 type Wishlist struct {
 	WlID      uuid.UUID        `json:"wl_id"`
 	UserID    uuid.UUID        `json:"user_id"`
 	ProductID string           `json:"product_id"`
-	AddedAt   pgtype.TIMESTAMP(0) `json:"added_at"`
-	UpdatedAt pgtype.TIMESTAMP(0) `json:"updated_at"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }

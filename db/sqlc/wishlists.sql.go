@@ -13,27 +13,30 @@ import (
 
 const createWishlists = `-- name: CreateWishlists :one
 INSERT INTO wishlists (
+    wl_id,
     user_id,
     product_id
 ) VALUES (
     $1,
-    $2
-) RETURNING wl_id, user_id, product_id, added_at, updated_at
+    $2,
+    $3
+) RETURNING wl_id, user_id, product_id, created_at, updated_at
 `
 
 type CreateWishlistsParams struct {
+	WlID      uuid.UUID `json:"wl_id"`
 	UserID    uuid.UUID `json:"user_id"`
 	ProductID string    `json:"product_id"`
 }
 
 func (q *Queries) CreateWishlists(ctx context.Context, arg CreateWishlistsParams) (Wishlist, error) {
-	row := q.db.QueryRow(ctx, createWishlists, arg.UserID, arg.ProductID)
+	row := q.db.QueryRow(ctx, createWishlists, arg.WlID, arg.UserID, arg.ProductID)
 	var i Wishlist
 	err := row.Scan(
 		&i.WlID,
 		&i.UserID,
 		&i.ProductID,
-		&i.AddedAt,
+		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
@@ -53,7 +56,7 @@ func (q *Queries) DeleteWishlistsByWlid(ctx context.Context, wlID uuid.UUID) err
 
 const getWishlistsByProductId = `-- name: GetWishlistsByProductId :many
 SELECT 
-    wl_id, user_id, product_id, added_at, updated_at
+    wl_id, user_id, product_id, created_at, updated_at
 FROM 
     wishlists
 WHERE 
@@ -73,7 +76,7 @@ func (q *Queries) GetWishlistsByProductId(ctx context.Context, productID string)
 			&i.WlID,
 			&i.UserID,
 			&i.ProductID,
-			&i.AddedAt,
+			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
@@ -88,7 +91,7 @@ func (q *Queries) GetWishlistsByProductId(ctx context.Context, productID string)
 
 const getWishlistsByUserId = `-- name: GetWishlistsByUserId :many
 SELECT 
-    wl_id, user_id, product_id, added_at, updated_at
+    wl_id, user_id, product_id, created_at, updated_at
 FROM 
     wishlists
 WHERE 
@@ -108,7 +111,7 @@ func (q *Queries) GetWishlistsByUserId(ctx context.Context, userID uuid.UUID) ([
 			&i.WlID,
 			&i.UserID,
 			&i.ProductID,
-			&i.AddedAt,
+			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
@@ -123,7 +126,7 @@ func (q *Queries) GetWishlistsByUserId(ctx context.Context, userID uuid.UUID) ([
 
 const getWishlistsList = `-- name: GetWishlistsList :many
 SELECT 
-    wl_id, user_id, product_id, added_at, updated_at
+    wl_id, user_id, product_id, created_at, updated_at
 FROM 
     wishlists
 `
@@ -141,7 +144,7 @@ func (q *Queries) GetWishlistsList(ctx context.Context) ([]Wishlist, error) {
 			&i.WlID,
 			&i.UserID,
 			&i.ProductID,
-			&i.AddedAt,
+			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
